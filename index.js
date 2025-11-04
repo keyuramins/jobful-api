@@ -28,13 +28,17 @@ app.use('/freejobalert', freejobalert);
 
 
 app.all('*', (req, res) => {
-    log.error("Invalid URL");
-    res.status(404).json({ err: "404 Invalid URL" })
+    // Ignore common browser requests that don't need error logging
+    const ignorePaths = ['/favicon.ico', '/robots.txt'];
+    if (!ignorePaths.includes(req.path)) {
+        log.error(`Invalid URL: ${req.method} ${req.path}`);
+    }
+    res.status(404).json({ error: "404 Invalid URL" })
 })
 
 
 app.listen(process.env.PORT || 3000, () => {
-    log.watch("listening to port: " + process.env.PORT || 3000);
+    log.watch("listening to port: " + (process.env.PORT || 3000));
 })
 
 module.exports = app;

@@ -1,6 +1,6 @@
 
 const request = require("supertest");
-const app = require('../server');
+const app = require('../index');
 const signale = require('signale');
 
 // beforeAll(async () => {
@@ -17,7 +17,7 @@ beforeEach(() => {
 // });
 
 afterAll(() => {
-    signale.star("Tests completed......");
+    signale.start("Tests completed......");
 });
 
 describe("GET / ", () => {
