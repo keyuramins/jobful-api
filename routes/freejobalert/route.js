@@ -7,6 +7,12 @@ const topicScraper = require("../../customModules/freejobalerts/scraper")
   .topicScraper;
 const smartScraper = require("../../customModules/freejobalerts/scraper")
   .smartScraper;
+const scrapeAllTablesByTitle = require("../../customModules/freejobalerts/scraper")
+  .scrapeAllTablesByTitle;
+const scrapeRailwayTablesAndContent = require("../../customModules/freejobalerts/scraper")
+  .scrapeRailwayTablesAndContent;
+const scrapeArticlePage = require("../../customModules/freejobalerts/scraper")
+  .scrapeArticlePage;
 const stateCodes = require("../../data/freeJobAlertStateMap.json");
 log.scope("freejobalert:global");
 
@@ -70,6 +76,14 @@ router.get("/defence-jobs", allIndiaDefenceJobs, (req, res) => {
   }
 });
 
+router.get("/articles", articleDetails, (req, res) => {
+  if (res.results !== undefined) {
+    res.json(res.results);
+  } else {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 /////////////////////////////////////////////////////// Invalid URL
 ///////////////////////////////////////////
 
@@ -110,14 +124,28 @@ async function stateWiseGovjobs(req, res, next) {
 async function allIndiaDefenceJobs(req, res, next) {
   log = log.scope("freejobalert:allIndiaDefenceJobs");
   const URL = "http://www.freejobalert.com/police-defence-jobs/";
-  const topic = "All India Defence Jobs";
-  const tableNo = 1;
-
+  
   try {
-    const data = await topicScraper(URL, topic, tableNo);
-    log.success(data);
-    res.status(200);
-    res.results = data;
+    const allTablesData = await scrapeAllTablesByTitle(URL);
+    
+    // Get the specific table data or return all tables
+    if (req.query.table) {
+      // Normalize table name robustly (e.g., "All India Police / Defence Jobs" -> "all-india-police-defence-jobs")
+      const normalizedTableName = req.query.table
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      const tableData = allTablesData[normalizedTableName] || [];
+      log.success(`Returning ${tableData.length} results for table "${normalizedTableName}"`);
+      res.status(200);
+      res.results = tableData;
+    } else {
+      // Return all tables with their header keys
+      log.success(`Returning data for ${Object.keys(allTablesData).length} tables`);
+      res.status(200);
+      res.results = allTablesData;
+    }
   } catch (error) {
     res.status(500);
     log.error(error);
@@ -129,14 +157,29 @@ async function allIndiaDefenceJobs(req, res, next) {
 async function allIndiaRailwayJobs(req, res, next) {
   log = log.scope("freejobalert:allIndiaRailwayJobs");
   const URL = "http://www.freejobalert.com/railway-jobs/";
-  const topic = "All India Railway Jobs";
-  const tableNo = 1;
-
+  
   try {
-    const data = await topicScraper(URL, topic, tableNo);
-    log.success(data);
-    res.status(200);
-    res.results = data;
+    const result = await scrapeRailwayTablesAndContent(URL);
+    
+    // Get the specific table data or return all tables (wrapped under "railway-jobs")
+    if (req.query.table) {
+      // Normalize table name robustly: letters/numbers only
+      const normalizedTableName = req.query.table
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      const tableData = result.tables[normalizedTableName] || [];
+      log.success(`Returning ${tableData.length} results for table "${normalizedTableName}"`);
+      res.status(200);
+      res.results = tableData;
+    } else {
+      // Return only rows under the key "railway-jobs" as an array
+      const allRows = Object.values(result.tables).reduce((acc, arr) => acc.concat(arr || []), []);
+      log.success(`Returning ${allRows.length} railway rows from ${Object.keys(result.tables).length} tables`);
+      res.status(200);
+      res.results = { 'railway-jobs': allRows };
+    }
   } catch (error) {
     res.status(500);
     log.error(error);
@@ -148,14 +191,28 @@ async function allIndiaRailwayJobs(req, res, next) {
 async function allIndiaEngineeringJobs(req, res, next) {
   log = log.scope("freejobalert:allIndiaEngineeringJobs");
   const URL = "http://www.freejobalert.com/engineering-jobs/";
-  const topic = "All India Engineering Jobs";
-  const tableNo = 1;
-
+  
   try {
-    const data = await topicScraper(URL, topic, tableNo);
-    log.success(data);
-    res.status(200);
-    res.results = data;
+    const allTablesData = await scrapeAllTablesByTitle(URL);
+    
+    // Get the specific table data or return all tables
+    if (req.query.table) {
+      // Normalize table name robustly (e.g., "All India Engineering Jobs" -> "all-india-engineering-jobs")
+      const normalizedTableName = req.query.table
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      const tableData = allTablesData[normalizedTableName] || [];
+      log.success(`Returning ${tableData.length} results for table "${normalizedTableName}"`);
+      res.status(200);
+      res.results = tableData;
+    } else {
+      // Return all tables with their header keys
+      log.success(`Returning data for ${Object.keys(allTablesData).length} tables`);
+      res.status(200);
+      res.results = allTablesData;
+    }
   } catch (error) {
     res.status(500);
     log.error(error);
@@ -186,14 +243,24 @@ async function bankJobs(req, res, next) {
 async function otherAllIndiaExam(req, res, next) {
   log = log.scope("freejobalert:otherAllIndiaExam");
   const URL = "http://www.freejobalert.com/government-jobs/";
-  const topic = "Other All India Exams";
-  const tableNo = 4;
   
   try {
-    const data = await topicScraper(URL, topic, tableNo);
-    res.status(200);
-    log.success(data);
-    res.results = data;
+    const allTablesData = await scrapeAllTablesByTitle(URL);
+    
+    // Get the specific table data or return all tables
+    if (req.query.table) {
+      // Normalize table name
+      const normalizedTableName = req.query.table.toLowerCase().trim().replace(/\s+/g, '-');
+      const tableData = allTablesData[normalizedTableName] || [];
+      log.success(`Returning ${tableData.length} results for table "${normalizedTableName}"`);
+      res.status(200);
+      res.results = tableData;
+    } else {
+      // Return all tables
+      log.success(`Returning data for ${Object.keys(allTablesData).length} tables`);
+      res.status(200);
+      res.results = allTablesData;
+    }
   } catch (error) {
     res.status(500);
     log.error(error);
@@ -205,13 +272,51 @@ async function otherAllIndiaExam(req, res, next) {
 async function allIndiaTeachingJobs(req, res, next) {
   log = log.scope("freejobalert:allIndiaTeachingJobs");
   const URL = "http://www.freejobalert.com/teaching-faculty-jobs/";
-  const topic = "All India Teaching Jobs";
-  const tableNo = 2;
   
   try {
-    const data = await topicScraper(URL, topic, tableNo);
+    const allTablesData = await scrapeAllTablesByTitle(URL);
+    
+    // Get the specific table data or return all tables
+    if (req.query.table) {
+      // Normalize table name (e.g., "All India Teaching Jobs" -> "all-india-teaching-jobs")
+      const normalizedTableName = req.query.table.toLowerCase().trim().replace(/\s+/g, '-');
+      const tableData = allTablesData[normalizedTableName] || [];
+      log.success(`Returning ${tableData.length} results for table "${normalizedTableName}"`);
+      res.status(200);
+      res.results = tableData;
+    } else {
+      // Return all tables with their header keys
+      log.success(`Returning data for ${Object.keys(allTablesData).length} tables`);
+      res.status(200);
+      res.results = allTablesData;
+    }
+  } catch (error) {
+    res.status(500);
+    log.error(error);
+    res.results = { error: "Something Went Wrong" };
+  }
+  next();
+}
+
+async function articleDetails(req, res, next) {
+  log = log.scope("freejobalert:articleDetails");
+  const url = (req.query.url || "").trim();
+
+  if (!url) {
+    res.status(400);
+    res.results = { error: "Missing required query param: url" };
+    return next();
+  }
+  const isAllowed = /^https?:\/\/(www\.)?freejobalert\.com\/articles\//i.test(url);
+  if (!isAllowed) {
+    res.status(400);
+    res.results = { error: "Only freejobalert article URLs are allowed" };
+    return next();
+  }
+
+  try {
+    const data = await scrapeArticlePage(url);
     res.status(200);
-    log.success(data);
     res.results = data;
   } catch (error) {
     res.status(500);

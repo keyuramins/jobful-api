@@ -29,6 +29,110 @@ GET http://localhost:3000/freejobalert/
     {"title":"Coast Guard Assistant Commandant- 01/2020 Batch Online Link Available"}
 ]
 ```
+
+### New / Updated Endpoints
+
+3. <h4 style="color:tomato;">Teaching Jobs (tables keyed by headings)</h4>
+
+```http
+GET http://localhost:3000/freejobalert/teaching-jobs
+GET http://localhost:3000/freejobalert/teaching-jobs?table=andhra-pradesh
+```
+Returns either a map of table-key -> rows, or a single table array when `?table=` is provided. Table keys are normalized from the page `<h4 class="latsec">` headings.
+
+4. <h4 style="color:tomato;">Engineering Jobs (tables keyed by headings)</h4>
+
+```http
+GET http://localhost:3000/freejobalert/engineering-jobs
+GET http://localhost:3000/freejobalert/engineering-jobs?table=all-india-engineering-jobs
+```
+
+5. <h4 style="color:tomato;">Railway Jobs</h4>
+
+```http
+GET http://localhost:3000/freejobalert/railway-jobs
+```
+#### Returns:
+```json
+{
+  "railway-jobs": [
+    {
+      "postDate": "01/11/2025",
+      "postBoard": "RRB NTPC",
+      "postName": "Traffic Assistant, Station Master and Other — 5,810",
+      "qualification": "Any Graduate",
+      "advtNo": "06/2025",
+      "lastDate": "20-11-2025",
+      "link": "https://www.freejobalert.com/articles/rrb-ntpc-..."
+    }
+  ]
+}
+```
+You can still query a specific table if needed:
+```http
+GET http://localhost:3000/freejobalert/railway-jobs?table=main
+```
+
+6. <h4 style="color:tomato;">Defence / Police Jobs (tables keyed by headings, safe slugs)</h4>
+
+```http
+GET http://localhost:3000/freejobalert/defence-jobs
+```
+Table keys are normalized (letters/numbers with hyphens). For example: `all-india-police-defence-jobs`, `state-wise-police-jobs`.
+
+7. <h4 style="color:tomato;">Article Details (structured scraper)</h4>
+
+Scrapes a FreeJobAlert article page and returns a consistent JSON with title, description, overview KV table, vacancy table, eligibility, application (fees/dates/selection/how-to-apply), typed links, QnA, and raw blocks for resiliency.
+
+```http
+GET http://localhost:3000/freejobalert/articles?url=https://www.freejobalert.com/articles/rrb-ntpc-graduate-reruitment-2026-apply-online-for-5-810-station-master-clerk-and-more-posts-3027289
+```
+
+#### Response (shape excerpt)
+```json
+{
+  "meta": {
+    "url": "https://www.freejobalert.com/articles/...",
+    "title": "RRB NTPC Graduate Recruitment 2026 - Apply Online for 5,810 ...",
+    "description": "RRB NTPC Recruitment 2025-26 Notification Out!..."
+  },
+  "overview": {
+    "keyValues": {
+      "Company Name": "Railway Recruitment Board (RRB)",
+      "Post Name": "Traffic Assistant, Station Master and Other",
+      "No of Posts": "5,810"
+    }
+  },
+  "vacancy": {
+    "table": {
+      "headers": ["Post","Total Vacancies (All RRBs)","Initial Pay (Rs.)"],
+      "rows": [["Station Master","615","35,400"]]
+    },
+    "computed": { "totalVacancies": 5810 }
+  },
+  "eligibility": { "qualifications": ["Station Master: Degree ..."], "ageLimit": { "asOn": "01-01-2026", "min": 18, "max": 33 } },
+  "application": {
+    "fees": ["SC/ST/...: Rs 250/-", "Others: Rs 500/-"],
+    "importantDates": [ { "label": "Start Date for Apply Online", "dateText": "21-10-2025", "dateISO": "2025-10-21" } ],
+    "selectionProcess": ["CBT 1","CBT 2","CBAT","Document Verification and Medical Examination"],
+    "howToApply": ["Read detailed CEN ..."]
+  },
+  "links": {
+    "applyOnline": "https://www.rrbapply.gov.in/#/auth/landing",
+    "notificationPdf": "https://www.rrbchennai.gov.in/downloads/Final-CEN-06-2025-21-10-2025-Publish.pdf",
+    "officialWebsite": "https://rrbchennai.gov.in"
+  },
+  "qna": [
+    { "q": "What is the starting date to apply online?", "a": "21-10-2025" },
+    { "q": "What is the last date to apply online?", "a": "20-11-2025" }
+  ]
+}
+```
+
+Notes:
+- The article route only accepts `https://www.freejobalert.com/articles/...` URLs.
+- Dates in `importantDates` include both the original `dateText` and a parsed `dateISO` when recognizable.
+- `qna` is derived from the FAQ section or Q/A patterns on the page.
 2. <h4 style="color:tomato;">All govt. exams</h4>
 
 ```http
