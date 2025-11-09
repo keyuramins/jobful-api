@@ -7,7 +7,25 @@ dotenv.config();
 const app = express();
 var log = signale.scope("server:global");
 
-app.use(cors());
+const allowedOrigins = [
+    "http://localhost:3000",
+    "https://rrbjobs.in",
+    "https://www.rrbjobs.in",
+    "https://govjobs.serveriko.com",
+    "https://www.govjobs.serveriko.com",
+  ];
+
+app.use(cors({
+    origin: function (origin, callback) {
+      if (allowedOrigins.includes(origin) || origin === "http://localhost:3000" || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "OPTIONS"],
+    credentials: false,
+  }));
 app.use(express.json());
 
 app.get('/',(req,res)=>{
