@@ -2,6 +2,8 @@ const express = require('express');
 const signale = require('signale');
 const dotenv = require('dotenv');
 const freejobalert = require('./routes/freejobalert/route');
+const cors = require("cors");
+app.use(cors());
 
 const app = express();
 dotenv.config();
