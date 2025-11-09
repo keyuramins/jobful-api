@@ -30,7 +30,8 @@
     "express": "^4.17.1",
     "jest": "^30.2.0",
     "request": "^2.88.2",
-    "signale": "^1.4.0"
+    "signale": "^1.4.0",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "nodemon": "^2.0.3",
