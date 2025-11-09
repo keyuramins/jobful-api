@@ -6,6 +6,9 @@
 <p align="center">A RESTful API to fetch latest job notifications(INDIA only) from various sources.</p>
 
 <p align="center">Fetches various job and exam notifications from popular websites and sereves them as json</p>
+
+> 📖 **New**: Check out [JOB_CATEGORIZATION.md](./JOB_CATEGORIZATION.md) for a comprehensive guide on how to distinguish and categorize different job types from the latest notifications endpoint.
+
 <div align="center">
 <!-- <p align="center"><img src="https://app.codacy.com/manual/dipankarpal5050/jobful-api?utm_source=github.com&utm_medium=referral&utm_content=deep5050/jobful-api&utm_campaign=Badge_Grade_Settings.svg" /></p> -->
 	
